@@ -17,7 +17,7 @@ class Fingerprint():
             raise ValueError('No filename or stream provided')
         if filename is None and rec_stream is not None:
             raise NotImplementedError('Sorry guys')
-        self.wav_file = wave.open(filename)
+        self.wav_file = wave.open(filename, 'r')
 
     def read_n_mili(self, n):
         """
