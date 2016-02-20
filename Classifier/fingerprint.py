@@ -1,3 +1,4 @@
+from __future__ import division
 """
 TODO in this file
 
@@ -9,7 +10,10 @@ for each window
 compress all this
 store it
 """
-import wave
+from Tools.wavehelper import WaveHelper
+from numpy.fft import rfft
+import numpy as np
+import matplotlib.pyplot as plt
 
 class Fingerprint():
     def __init__(self, filename=None, rec_stream=None):
@@ -17,27 +21,21 @@ class Fingerprint():
             raise ValueError('No filename or stream provided')
         if filename is None and rec_stream is not None:
             raise NotImplementedError('Sorry guys')
-        self.wav_file = wave.open(filename, 'r')
+        self.wav_r = WaveHelper(filename, True)
 
-    def read_n_mili(self, n):
-        """
-        Returns an array of samples that represent n miliseconds
-        """
-        # assuming that this will be the only access to the
-        # raw data we will check for multiple channels
-        # and average them if they exist
+    def fingerprint(self):
+        windows = []
+        nframes = self.wav_r.wav.getnframes()
+        while self.wav_r.pos() < nframes:
+            windows.append(self.wav_r.read_n_mili(16))
+            print "\rReading file {0}%".format(self.wav_r.pos() / nframes * 100),
+        freq_window = [rfft(i) for i in windows]
+        xf = np.linspace(0.0, 1.0, len(windows[0])/2)
+        plt.plot(xf, 2/len(windows[0]) * freq_window[0][:len(windows[0])/2])
+        plt.show()
+        plt.plot(windows[0])
+        plt.show()
 
-        # calculate the number of samples to return
-        time_per_sample = (1.0 / self.wav_file.getframerate()) * 1000
-        samples_to_get  = int(16 / time_per_sample)
-
-        if samples_to_get == 0:
-            samples_to_get = 1
-
-        raw = self.wav_file.readframes(samples_to_get)
-        if self.wav_file.getnchannels() == 1:
-            return raw
-        else:
-            raise NotImplementedError("Sorry guys")
-
-
+if __name__ == "__main__":
+    f = Fingerprint(filename="Samples/test.wav")
+    f.fingerprint()
