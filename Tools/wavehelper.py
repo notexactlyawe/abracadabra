@@ -2,20 +2,24 @@ import wave
 import struct
 
 class WaveHelper():
-    def __init__(self, filename, read):
+    def __init__(self, filename, read=True, debug=False):
         mode = 'r' if read else 'w'
         self.wav = wave.open(filename, mode)
         self.rate = self.wav.getframerate()
         self.count_frames = self.wav.getnframes()
+        self.channels = self.wav.getnchannels()
         fmt_size = "h" if self.wav.getsampwidth() == 2 else "i"
-        self.fmt = "<" + fmt_size * self.wav.getnchannels()
+        self.fmt = "<" + fmt_size * self.channels
 
     def read_whole(self):
         ret = []
         self.rewind()
         while self.pos() < self.count_frames:
             decoded = struct.unpack(self.fmt, self.wav.readframes(1))
-            ret.append(decoded)
+            if len(decoded) == 2:
+                ret.append((decoded[0] + decoded[1]) / 2)
+            else:
+                ret.append(decoded[0])
         return ret
     
     def read_n_mili(self, n):

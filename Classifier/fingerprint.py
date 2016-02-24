@@ -11,6 +11,7 @@ compress all this
 store it
 """
 from Tools.wavehelper import WaveHelper
+import Tools.misc as misc
 from numpy.fft import rfft
 import numpy as np
 import matplotlib.pyplot as plt
@@ -21,21 +22,23 @@ class Fingerprint():
             raise ValueError('No filename or stream provided')
         if filename is None and rec_stream is not None:
             raise NotImplementedError('Sorry guys')
-        self.wav_r = WaveHelper(filename, True)
+        self.wav_r = WaveHelper(filename, read=True, debug=True)
+        self.samples = self.wav_r.read_whole()
+
+    def windows(self, l, n):
+        chunk_size = self.wav_r.samples_per_n_mili(n)
+        for chunk in misc.chunks(l, chunk_size):
+            yield chunk
+        
+    def fourier(self, window):
+        return rfft(window)
 
     def fingerprint(self):
-        windows = []
-        nframes = self.wav_r.wav.getnframes()
-        while self.wav_r.pos() < nframes:
-            windows.append(self.wav_r.read_n_mili(16))
-            print "\rReading file {0}%".format(self.wav_r.pos() / nframes * 100),
-        freq_window = [rfft(i) for i in windows]
-        xf = np.linspace(0.0, 1.0, len(windows[0])/2)
-        plt.plot(xf, 2/len(windows[0]) * freq_window[0][:len(windows[0])/2])
-        plt.show()
-        plt.plot(windows[0])
-        plt.show()
-
+        no = 1
+        total_len = 0
+        for window in self.windows(self.samples, 16):
+            f = self.fourier(window)
+    
 if __name__ == "__main__":
-    f = Fingerprint(filename="Samples/test.wav")
+    f = Fingerprint(filename="Samples/336739__astronautchild__goddog.wav")
     f.fingerprint()
