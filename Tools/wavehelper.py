@@ -4,8 +4,10 @@ import struct
 def read_whole(filename):
     wav_r = wave.open(filename, 'r')
     ret = []
+    fmt_size = "h" if wav_r.getsampwidth() == 2 else "i"
+    fmt = "<" + fmt_size * wav_r.getnchannels()
     while wav_r.tell() < wav_r.getnframes():
-        decoded = struct.unpack("<h", wav_r.readframes(1))
+        decoded = struct.unpack(fmt, wav_r.readframes(1))
         ret.append(decoded)
     return ret
 
@@ -13,11 +15,12 @@ class WaveHelper():
     def __init__(self, filename, read):
         mode = 'r' if read else 'w'
         self.wav = wave.open(filename, mode)
+        self.rate = self.wav.getframerate()
 
     def read_n_mili(self, n):
         ret = []
 
-        time_per_sample = (1.0 / self.wav.getframerate()) * 1000
+        time_per_sample = (1.0 / self.rate) * 1000
         samples_to_get  = int(n / time_per_sample)
 
         if samples_to_get == 0:
