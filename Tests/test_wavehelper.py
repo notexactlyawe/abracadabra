@@ -7,7 +7,8 @@ def test_read_whole_len():
     wav_r = wave.open(filename, 'r')
     expected_len = wav_r.getnframes()
     wav_r.close()
-    actual_len = len(wvhelp.read_whole(filename))
+    w = wvhelp.WaveHelper(filename, True)
+    actual_len = len(w.read_whole())
     print "{0} == {1}".format(expected_len, actual_len)
     assert expected_len == actual_len
 
@@ -34,4 +35,10 @@ def test_read_n_mili_type():
     samples = w.read_n_mili(16)
     assert type(samples) is list
     assert type(samples[0]) is int
+
+def test_channel_ambiguity():
+    one = wvhelp.WaveHelper(filename, True)
+    samples = one.read_whole()
+    two = wvhelp.WaveHelper('Samples/336739__astronautchild__goddog.wav', True)
+    samples_two = two.read_whole()
 # Maybe figure out how to compare graphs?
