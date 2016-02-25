@@ -12,7 +12,6 @@ store it
 """
 from Tools.wavehelper import WaveHelper
 import Tools.misc as misc
-from numpy.fft import rfft
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -29,15 +28,12 @@ class Fingerprint():
         chunk_size = self.wav_r.samples_per_n_mili(n)
         for chunk in misc.chunks(l, chunk_size):
             yield chunk
-        
-    def fourier(self, window):
-        return rfft(window)
 
     def fingerprint(self):
         no = 1
         total_len = 0
         for window in self.windows(self.samples, 16):
-            f = self.fourier(window)
+            f = misc.fourier(window)
     
 if __name__ == "__main__":
     f = Fingerprint(filename="Samples/336739__astronautchild__goddog.wav")
