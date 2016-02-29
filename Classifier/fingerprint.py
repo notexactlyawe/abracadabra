@@ -31,7 +31,7 @@ class Fingerprint():
                 f_idx = np.where(seg==max(seg))[0][0] + num * len(f)//16
                 freq = self.freq_arr[f_idx]
                 temp.append(freq)
-            fprint.append(freq)
+            fprint.append(temp)
         return fprint
     
 if __name__ == "__main__":
