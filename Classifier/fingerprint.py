@@ -23,6 +23,8 @@ class Fingerprint():
             raise NotImplementedError('Sorry guys')
         self.wav_r = WaveHelper(filename, read=True, debug=True)
         self.samples = self.wav_r.read_whole()
+        self.mili = 16
+        self.freq_arr = np.linspace(0, 22050, self.wav_r.samples_per_n_mili(self.mili)/2)
 
     def windows(self, l, n):
         chunk_size = self.wav_r.samples_per_n_mili(n)
@@ -32,8 +34,12 @@ class Fingerprint():
     def fingerprint(self):
         no = 1
         total_len = 0
-        for window in self.windows(self.samples, 16):
+        for window in self.windows(self.samples, self.mili):
             f = misc.fourier(window)
+            for num, seg in enumerate(misc.chunks(f, len(f)//16)):
+                f_idx = np.where(seg==max(seg))[0][0] + num * len(f)//16
+                freq = self.freq_arr[f_idx]
+                print str(freq) + ",",
     
 if __name__ == "__main__":
     f = Fingerprint(filename="Samples/336739__astronautchild__goddog.wav")
