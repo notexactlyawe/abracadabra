@@ -1,4 +1,4 @@
 numpy
 scipy *
-matplotlib *
+matplotlib
 * - not yet

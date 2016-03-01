@@ -1,4 +1,5 @@
 Sound recogniser
+================
 
 Mostly to see whether it's possible, this is a project to identify sounds from a finite set. The current plan is to divide it into the following modules:
 
@@ -6,15 +7,10 @@ Sound recogniser
 Sound storage
 Sound classifier
 
-The classifying is currently being written in Python for ease of development but may switch to another language if and when needs change.
-
 The classifying of tracks will require performing a fourier on each time interval (to be decided) in the track and identifying amplitude peaks in different sections of the resulting transform.
-qdbus org.freedesktop.ScreenSaver /ScreenSaver Lock
-Actions within each module:
- Sound Classifier
-  - Record sound
-  - Perform fourier on each sample
-  - Split resulting array into N (16) sections and find frequency peaks for each section
-  - Compress resulting fingerprint for storage
+
+Fingerprint block diagram
+-------------------------
+![Fingerprinting](fingerprint.png "Fingerprinting")
 
 This is an idea coming from the talk Over The Air Identification at FOSDEM 2016.
