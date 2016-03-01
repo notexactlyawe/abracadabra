@@ -1,9 +1,3 @@
-"""
-In this file
-given some audio
-fingerprint
-compare this fingerprint to existing
-"""
 from Classifier.fingerprint import Fingerprint
 import matplotlib.pyplot as plt
 
@@ -12,12 +6,13 @@ class Recognise():
         self.filename = 'Samples/336739__astronautchild__goddog.wav'
         self.f = Fingerprint(self.filename)
         self.fprint = self.f.fingerprint()
+        self.window_size = 22050/16.0
         print "Recognise initialised"
 
     def compare(self, sample, fprint):
         t_comp = []
         for win_start in range(0, len(fprint)):
-            print "\rComparing {0} of {1}".format(win_start, len(fprint)),
+            print "\rComparing {0} of {1}".format(win_start+1, len(fprint)),
             win_comp = []
             for idx, window in enumerate(sample):
                 try:
@@ -30,14 +25,22 @@ class Recognise():
         plt.show()
 
     def compare_window(self, window, fprint):
+        """
+        Takes in two lists of frequencies
+        and compares them to produce a similarity
+        figure.
+        The figures it takes in should be frequencies
+        with the max amplitudes in segments of a 
+        fourier transformed window
+        """
         if fprint is None:
-            return sum(window)
+            return 0.5 * len(window)
         res = 0
         for x, y in map(None, window, fprint):
             if x is None:
-                res += y
+                res += 0.5
             else:
-                res += abs(x-y)
+                res += abs(x-y) / self.window_size
         return res
 
 if __name__ == "__main__":
