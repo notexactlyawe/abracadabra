@@ -1,4 +1,6 @@
+import os
 import wave
+import array
 import struct
 from Tools.misc import chunks
 
@@ -6,29 +8,27 @@ class WaveHelper():
     def __init__(self, filename, read=True, debug=False):
         mode = 'r' if read else 'w'
         self.wav = wave.open(filename, mode)
+        self.filename = filename
         self.rate = self.wav.getframerate()
         self.count_frames = self.wav.getnframes()
         self.channels = self.wav.getnchannels()
-        fmt_size = "h" if self.wav.getsampwidth() == 2 else "i"
-        self.fmt = "<" + fmt_size * self.channels
-
-    def unpacked_chunks(self, frames, size_chunk):
-        for chunk in chunks(frames, size_chunk):
-            yield struct.unpack(self.fmt, chunk)
+        self.fmt_size = "h" if self.wav.getsampwidth() == 2 else "i"
+        self.fmt = "<" + self.fmt_size * self.channels
 
     def read_whole(self):
-        frames = self.wav.readframes(self.count_frames)
-        size_ch = self.wav.getsampwidth() * self.channels
+        a = array.array(self.fmt_size)
+        a.fromfile(open(self.filename, 'rb'), os.path.getsize(self.filename)/a.itemsize)
+        # calculate offset for 44B of header
+        a = a[44/self.wav.getsampwidth():]
+        print "WH: {0}".format(len(a))
+        avg = lambda x, y: (x + float(y)) / 2
         if self.channels == 2:
-            return [(ch[0] + ch[1]) / 2 for ch in self.unpacked_chunks(frames, size_ch)] 
-        else:
-            return unpacked_chunks(frames, size_chunk)
+            return map(avg, a[::2], a[1::2])
+        return a
     
     def read_n_mili(self, n):
         ret = []
-
         samples_to_get = self.samples_per_n_mili(n)
-
         if samples_to_get == 0:
             samples_to_get = 1
 

@@ -1,7 +1,7 @@
 import Tools.wavehelper as wvhelp
 import wave
 
-filename = 'Samples/test.wav'
+filename = 'Samples/336739__astronautchild__goddog.wav'
 
 def test_read_whole_len():
     wav_r = wave.open(filename, 'r')
@@ -9,7 +9,7 @@ def test_read_whole_len():
     wav_r.close()
     w = wvhelp.WaveHelper(filename, True)
     actual_len = len(w.read_whole())
-    print "{0} == {1}".format(expected_len, actual_len)
+    print "exp: {0} == act: {1}".format(expected_len, actual_len)
     assert expected_len == actual_len
 
 def test_read_n_mili_len():
