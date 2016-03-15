@@ -3,6 +3,7 @@ import wave
 import array
 import struct
 from Tools.misc import chunks
+import logging
 
 class WaveHelper():
     def __init__(self, filename, read=True, debug=False):
@@ -20,7 +21,7 @@ class WaveHelper():
         a.fromfile(open(self.filename, 'rb'), os.path.getsize(self.filename)/a.itemsize)
         # calculate offset for 44B of header
         a = a[44/self.wav.getsampwidth():]
-        print "WH: {0}".format(len(a))
+        logging.debug("WH: {0}".format(len(a)))
         avg = lambda x, y: (x + float(y)) / 2
         if self.channels == 2:
             return map(avg, a[::2], a[1::2])
@@ -38,7 +39,7 @@ class WaveHelper():
             except:
                 # if samples left < samples_to_get
                 # ie readframes(1) returns ''
-                print "read_n_mili: reached end prematurely"
+                logging.info("read_n_mili: reached end prematurely")
                 break
             if len(decoded) == 2:
                 ret.append((decoded[0] + decoded[1]) / 2)

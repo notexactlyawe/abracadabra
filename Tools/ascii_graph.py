@@ -3,10 +3,8 @@ import numpy as np
 def graph_ascii(some_list, graph_max=None, graph_min=None, resolution=10):
     if graph_max is None:
         graph_max = np.max(some_list)
-#        print "max in array: {0}".format(graph_max)
     if graph_min is None:
         graph_min = np.min(some_list)
-#        print "min in array: {0}".format(graph_min)
     if graph_max == graph_min:
         range_graph = 1 
     else:
@@ -18,9 +16,7 @@ def graph_ascii(some_list, graph_max=None, graph_min=None, resolution=10):
     for item in some_list:
         temp_height = (float(item - graph_min) / (range_graph))
         height = int(temp_height * resolution) + 1
-#        print "{0} has gone to {1}".format(item, height)
         for y_val in range(height):
-#            print "X Y: {0}, {1}".format(x_val, y_val)
             to_graph[y_val][x_val] = "*"
         x_val += 1
     

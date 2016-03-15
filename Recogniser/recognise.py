@@ -1,5 +1,6 @@
 from Classifier.fingerprint import Fingerprint
 import matplotlib.pyplot as plt
+import logging
 
 class Recognise():
     def __init__(self):
@@ -7,12 +8,12 @@ class Recognise():
         self.f = Fingerprint(self.filename)
         self.fprint = self.f.fingerprint()
         self.window_size = 22050/16.0
-        print "Recognise initialised"
+        logging.debug("Recognise initialised")
 
     def compare(self, sample, fprint):
         t_comp = []
         for win_start in range(0, len(fprint)):
-            print "\rComparing {0} of {1}".format(win_start+1, len(fprint)),
+            logging.info("Comparing {0} of {1}".format(win_start+1, len(fprint)))
             win_comp = []
             for idx, window in enumerate(sample):
                 try:

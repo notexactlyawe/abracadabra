@@ -3,6 +3,7 @@ from Tools.wavehelper import WaveHelper
 import Tools.misc as misc
 import numpy as np
 import matplotlib.pyplot as plt
+import logging
 
 class Fingerprint():
     def __init__(self, filename=None, rec_stream=None):
@@ -14,6 +15,7 @@ class Fingerprint():
         self.samples = self.wav_r.read_whole()
         self.mili = 16
         self.freq_arr = np.linspace(0, 22050, self.wav_r.samples_per_n_mili(self.mili)/2)
+        logging.debug("Fingerprint initialised")
 
     def windows(self, l, n):
         chunk_size = self.wav_r.samples_per_n_mili(n)
