@@ -26,10 +26,15 @@ The basic data flow through the application will be as follows:
 ### 3.1 Normaliser ###
 The normaliser will consist of a main module that identifies the type of input and separate modules for each type that can be called. (eg mp3, aac, flac etc).
 Each module will know its own type and how to convert it to the base type that will be used.
+
 Normaliser
+
  | - identifier.py
+
  | - mp3.py
+
  | - aac.py
+
 etc
 
 ### 3.2 Fingerprinter ###
@@ -39,5 +44,7 @@ Fingerprinter will be accessible through a high-level interface where you pass i
 Storage/search is as of yet undefined. I will almost certainly use some third party system such as elastic search in combination with some main data store.
 
 <a name="shazam">1</a>: [An Industrial-Strength Audio Search Alogrithm](http://www.ee.columbia.edu/~dpwe/papers/Wang03-shazam.pdf)
+
 <a name="cvfmi">2</a>: [Computer Vision for Music Identification](http://www.cs.cmu.edu/~yke/musicretrieval/cvpr2005-mr.pdf)
+
 <a name="specfing">3</a>: [Improvement of Spectral Fingerprint for Audio Content Recognition](http://onlinepresent.org/proceedings/vol122_2016/47.pdf)
