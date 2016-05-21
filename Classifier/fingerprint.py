@@ -18,11 +18,18 @@ class Fingerprint():
         logging.debug("Fingerprint initialised")
 
     def windows(self, l, n):
+        """
+        Takes in a list l and a time n in ms
+        Yields chunks of size n ms
+        """
         chunk_size = self.wav_r.samples_per_n_mili(n)
         for chunk in misc.chunks(l, chunk_size):
             yield chunk
 
     def fingerprint(self):
+        """
+        Returns a fingerprint of self.wav_r
+        """
         no = 1
         total_len = 0
         fprint = []
