@@ -4,10 +4,10 @@ import numpy as np
 
 def graph_wav_ascii(filename, term_width):
     spf = wave.open(filename, 'r')
-    
+
     signal = spf.readframes(-1)
     signal = np.fromstring(signal, 'Int16')
-    
+
     chunk_size = len(signal)/term_width
 
     temp = 0

@@ -26,7 +26,7 @@ class WaveHelper():
         if self.channels == 2:
             return map(avg, a[::2], a[1::2])
         return a
-    
+
     def read_n_mili(self, n):
         ret = []
         samples_to_get = self.samples_per_n_mili(n)
