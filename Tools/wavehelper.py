@@ -5,7 +5,7 @@ import struct
 from Tools.misc import chunks
 import logging
 
-class WaveHelper():
+class WaveHelper:
     def __init__(self, filename, read=True, debug=False):
         mode = 'r' if read else 'w'
         self.wav = wave.open(filename, mode)
