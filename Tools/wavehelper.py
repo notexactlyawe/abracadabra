@@ -18,13 +18,13 @@ class WaveHelper:
 
     def read_whole(self):
         a = array.array(self.fmt_size)
-        a.fromfile(open(self.filename, 'rb'), os.path.getsize(self.filename)/a.itemsize)
+        a.fromfile(open(self.filename, 'rb'), os.path.getsize(self.filename)//a.itemsize)
         # calculate offset for 44B of header
-        a = a[44/self.wav.getsampwidth():]
+        a = a[44//self.wav.getsampwidth():]
         logging.debug("WH: {0}".format(len(a)))
-        avg = lambda x, y: (x + float(y)) / 2
+        avg = lambda x, y: (x + y) / 2
         if self.channels == 2:
-            return map(avg, a[::2], a[1::2])
+            return list(map(avg, a[::2], a[1::2]))
         return a
 
     def read_n_mili(self, n):
