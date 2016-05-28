@@ -16,4 +16,5 @@ Dejavu works in a similar way to the paper outlined above.
 http://www.ee.columbia.edu/~dpwe/papers/Wang03-shazam.pdf - The original Shazam paper
 
 Papers referencing Wang:
+
 https://scholar.google.co.uk/scholar?client=ubuntu&channel=fs&oe=utf-8&gfe_rd=cr&um=1&ie=UTF-8&lr&cites=11824032630980601393
