@@ -1,7 +1,8 @@
 import os
 import numpy as np
 from tinytag import TinyTag
-from Fingerprint.fingerprint import fingerprint_file
+from record import record_audio
+from Fingerprint.fingerprint import fingerprint_file, fingerprint_audio
 from Storage.storage import store_song, get_matches, get_info_for_song_id
 
 # Extensions that I've tested with librosa
@@ -40,3 +41,19 @@ def recognise_song(filename):
     if info is not None:
         return info
     return song_id
+
+def listen_to_song():
+    audio = record_audio()
+    hashes = fingerprint_audio(audio)
+    matches = get_matches(hashes)
+    matched_song = None
+    best_score = 0
+    for song_id, offsets in matches.items():
+        score = len(offsets) / (np.std(offsets) + np.max(offsets))
+        if score > best_score:
+            best_score = score
+            matched_song = song_id
+    info = get_info_for_song_id(matched_song)
+    if info is not None:
+        return info
+    return matched_song

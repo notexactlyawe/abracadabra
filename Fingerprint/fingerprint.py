@@ -71,3 +71,9 @@ def fingerprint_file(filename, sample_rate=11025, distance=30, point_efficiency=
     peaks = find_peaks(Sxx, distance, point_efficiency=point_efficiency)
     peaks = idxs_to_tf_pairs(peaks, t, f)
     return hash_points(peaks, filename)
+
+def fingerprint_audio(frames, sample_rate=11025, distance=30, point_efficiency=0.4):
+    f, t, Sxx = my_spectrogram(frames, sample_rate)
+    peaks = find_peaks(Sxx, distance, point_efficiency=point_efficiency)
+    peaks = idxs_to_tf_pairs(peaks, t, f)
+    return hash_points(peaks, "recorded")
