@@ -1,3 +1,4 @@
+import uuid
 import numpy as np
 import librosa.core as lr
 from scipy.signal import spectrogram
@@ -52,6 +53,7 @@ def target_zone(anchor, points, width, height, t):
 
 def hash_points(points, filename, target_start=0.1, target_t=1, target_f=2000):
     hashes = []
+    song_id = uuid.uuid5(uuid.NAMESPACE_OID, filename).int
     for anchor in points:
         for target in target_zone(
             anchor, points, target_t, target_f, target_start
@@ -62,7 +64,7 @@ def hash_points(points, filename, target_start=0.1, target_t=1, target_f=2000):
                 # time offset
                 anchor[1],
                 # filename
-                filename
+                str(song_id)
             ))
     return hashes
 

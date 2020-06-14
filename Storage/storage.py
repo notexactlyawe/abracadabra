@@ -23,12 +23,15 @@ def store_song(hashes, song_info):
 
 def get_matches(hashes, threshold=5):
     conn, c = get_cursor()
-    in_values = f"({','.join(str(h[0]) for h in hashes)})"
-    c.execute(f"SELECT offset, song_id FROM hash WHERE hash IN {in_values}")
+    h_dict = {}
+    for h, t, _ in hashes:
+        h_dict[h] = t
+    in_values = f"({','.join([str(h[0]) for h in hashes])})"
+    c.execute(f"SELECT hash, offset, song_id FROM hash WHERE hash IN {in_values}")
     results = c.fetchall()
     result_dict = defaultdict(list)
     for r in results:
-        result_dict[r[1]].append(r[0])
+        result_dict[r[2]].append((r[1], h_dict[r[0]]))
     return result_dict
 
 def get_info_for_song_id(song_id):

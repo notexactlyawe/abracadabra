@@ -27,29 +27,34 @@ def register_directory(path):
             print(file_path)
             register_song(file_path)
 
+def score_match(offsets):
+    tks = list(map(lambda x: x[0] - x[1], offsets))
+    hist, _ = np.histogram(tks)
+    return np.max(hist)
+
 def recognise_song(filename):
     hashes = fingerprint_file(filename)
     matches = get_matches(hashes)
     matched_song = None
     best_score = 0
     for song_id, offsets in matches.items():
-        score = len(offsets) / (np.std(offsets) + np.max(offsets))
+        score = score_match(offsets)
         if score > best_score:
             best_score = score
             matched_song = song_id
-    info = get_info_for_song_id(song_id)
+    info = get_info_for_song_id(matched_song)
     if info is not None:
         return info
-    return song_id
+    return matched_song
 
-def listen_to_song():
-    audio = record_audio()
+def listen_to_song(filename=None):
+    audio = record_audio(filename=filename)
     hashes = fingerprint_audio(audio)
     matches = get_matches(hashes)
     matched_song = None
     best_score = 0
     for song_id, offsets in matches.items():
-        score = len(offsets) / (np.std(offsets) + np.max(offsets))
+        score = score_match(offsets)
         if score > best_score:
             best_score = score
             matched_song = song_id
