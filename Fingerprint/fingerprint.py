@@ -1,7 +1,8 @@
 import uuid
 import numpy as np
-import librosa.core as lr
+from pydub import AudioSegment
 from scipy.signal import spectrogram
+from scipy.ndimage import maximum_filter
 
 def my_spectrogram(audio, sample_rate, fft_window_size_s=0.1):
     # default 100ms segments (allows for 600BPM music)
@@ -9,29 +10,25 @@ def my_spectrogram(audio, sample_rate, fft_window_size_s=0.1):
     return spectrogram(audio, sample_rate, nperseg=nperseg)
 
 def file_to_spectrogram(filename, rate=11025):
-    audio, _ = lr.load(filename, sr=rate, mono=True)
+    a = AudioSegment.from_file(filename).set_channels(1).set_frame_rate(rate)
+    audio = np.frombuffer(a.raw_data, np.int16)
     return my_spectrogram(audio, rate)
 
-def find_peaks(arr, distance, point_efficiency=0.4):
-    # get sorted flattened indices descending
-    i = arr.argsort(axis=None)[::-1]
+def find_peaks(Sxx, distance, point_efficiency=1):
+    data_max = maximum_filter(Sxx, size=distance, mode='constant', cval=0.0)
+    peak_goodmask = (Sxx == data_max)  # good pixels are True
+    y_peaks, x_peaks = peak_goodmask.nonzero()
+    peak_values = Sxx[y_peaks, x_peaks]
+    i = peak_values.argsort()[::-1]
     # get co-ordinates into arr
-    j = np.vstack(np.unravel_index(i, arr.shape)).T
+    j = [(y_peaks[idx], x_peaks[idx]) for idx in i]
     peaks = []
-    total = j.size
+    total = Sxx.shape[0] * Sxx.shape[1]
     # in a square with a perfectly spaced grid, we could fit area / distance^2 points
     # use point efficiency to reduce this, since it won't be perfectly spaced
     # accuracy vs speed tradeoff
-    peak_target = (total / (distance**2)) * point_efficiency
-    for point in j:
-        if len(peaks) > peak_target:
-            break
-        for peak in peaks:
-            if abs(point[0] - peak[0]) + abs(point[1] - peak[1]) < distance:
-                break
-        else:
-            peaks.append(point)
-    return peaks
+    peak_target = int((total / (distance**2)) * point_efficiency)
+    return j[:peak_target]
 
 def idxs_to_tf_pairs(idxs, t, f):
     return np.array([(f[i[0]], t[i[1]]) for i in idxs])
@@ -68,13 +65,13 @@ def hash_points(points, filename, target_start=0.1, target_t=1, target_f=2000):
             ))
     return hashes
 
-def fingerprint_file(filename, sample_rate=11025, distance=30, point_efficiency=0.4):
+def fingerprint_file(filename, sample_rate=11025, distance=40, point_efficiency=1):
     f, t, Sxx = file_to_spectrogram(filename, rate=sample_rate)
     peaks = find_peaks(Sxx, distance, point_efficiency=point_efficiency)
     peaks = idxs_to_tf_pairs(peaks, t, f)
     return hash_points(peaks, filename)
 
-def fingerprint_audio(frames, sample_rate=11025, distance=30, point_efficiency=0.4):
+def fingerprint_audio(frames, sample_rate=11025, distance=40, point_efficiency=1):
     f, t, Sxx = my_spectrogram(frames, sample_rate)
     peaks = find_peaks(Sxx, distance, point_efficiency=point_efficiency)
     peaks = idxs_to_tf_pairs(peaks, t, f)

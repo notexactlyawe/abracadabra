@@ -1,3 +1,4 @@
+import uuid
 import sqlite3
 from collections import defaultdict
 
@@ -10,11 +11,22 @@ def setup_db():
     c.execute("CREATE TABLE hash (hash int, offset real, song_id text)")
     c.execute("CREATE TABLE song_info (artist text, album text, title text, song_id text)")
 
+def song_in_db(filename):
+    conn, c = get_cursor()
+    song_id = str(uuid.uuid5(uuid.NAMESPACE_OID, filename).int)
+    c.execute("SELECT * FROM song_info WHERE song_id=?", (song_id,))
+    return c.fetchone() is not None
+
 def get_cursor():
     conn = sqlite3.connect(DB_NAME)
     return conn, conn.cursor()
 
 def store_song(hashes, song_info):
+    if len(hashes) < 1:
+        # TODO: After experiments have run, change this to raise error
+        # Probably should re-run the peaks finding with higher efficiency
+        # or maybe widen the target zone
+        return
     conn, c = get_cursor()
     c.executemany("INSERT INTO hash VALUES (?, ?, ?)", hashes)
     insert_info = [i if i is not None else "Unknown" for i in song_info]
