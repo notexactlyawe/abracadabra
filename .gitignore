@@ -2,3 +2,4 @@
 *.swp
 venv/
 .ipynb_checkpoints/
+*.db
