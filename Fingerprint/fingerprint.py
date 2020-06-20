@@ -9,10 +9,10 @@ def my_spectrogram(audio, sample_rate, fft_window_size_s=0.1):
     nperseg = int(sample_rate * fft_window_size_s)
     return spectrogram(audio, sample_rate, nperseg=nperseg)
 
-def file_to_spectrogram(filename, rate=11025):
+def file_to_spectrogram(filename, rate=11025, fft_window_size_s=0.1):
     a = AudioSegment.from_file(filename).set_channels(1).set_frame_rate(rate)
     audio = np.frombuffer(a.raw_data, np.int16)
-    return my_spectrogram(audio, rate)
+    return my_spectrogram(audio, rate, fft_window_size_s=fft_window_size_s)
 
 def find_peaks(Sxx, distance, point_efficiency=1):
     data_max = maximum_filter(Sxx, size=distance, mode='constant', cval=0.0)
@@ -65,11 +65,16 @@ def hash_points(points, filename, target_start=0.1, target_t=1, target_f=2000):
             ))
     return hashes
 
-def fingerprint_file(filename, sample_rate=11025, distance=40, point_efficiency=1):
-    f, t, Sxx = file_to_spectrogram(filename, rate=sample_rate)
+def fingerprint_file(filename,
+                     sample_rate=11025, distance=40, point_efficiency=1,
+                     target_start=0.1, target_t=1, target_f=2000,
+                     fft_window_size_s=0.1
+                    ):
+    f, t, Sxx = file_to_spectrogram(filename, rate=sample_rate, fft_window_size_s=fft_window_size_s)
     peaks = find_peaks(Sxx, distance, point_efficiency=point_efficiency)
     peaks = idxs_to_tf_pairs(peaks, t, f)
-    return hash_points(peaks, filename)
+    return hash_points(peaks, filename,
+                       target_start=target_start, target_t=target_t, target_f=target_f)
 
 def fingerprint_audio(frames, sample_rate=11025, distance=40, point_efficiency=1):
     f, t, Sxx = my_spectrogram(frames, sample_rate)

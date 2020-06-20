@@ -12,21 +12,36 @@ def get_song_info(filename):
     tag = TinyTag.get(filename)
     return (tag.albumartist, tag.album, tag.title)
 
-def register_song(filename, sample_rate=11025, distance=30, point_efficiency=0.8):
+def register_song(filename, sample_rate=11025, distance=30, point_efficiency=0.8,
+                    target_start=0.1, target_t=1, target_f=2000, fft_window_size_s=0.1):
     if song_in_db(filename):
         return
-    hashes = fingerprint_file(filename, sample_rate=sample_rate, distance=distance, point_efficiency=point_efficiency)
+    hashes = fingerprint_file(filename,
+                              sample_rate=sample_rate,
+                              distance=distance,
+                              point_efficiency=point_efficiency,
+                              target_start=target_start, target_t=target_t, target_f=target_f,
+                              fft_window_size_s=fft_window_size_s)
     song_info = get_song_info(filename)
     store_song(hashes, song_info)
 
-def register_directory(path, sample_rate=11025, distance=30, point_efficiency=0.8):
+def register_directory(path,
+                       sample_rate=11025, distance=30, point_efficiency=0.8,
+                       target_start=0.1, target_t=1, target_f=2000,
+                       fft_window_size_s=0.1
+                      ):
     """ Recursively register songs in a directory """
     for root, _, files in os.walk(path):
         for f in files:
             if f.split('.')[-1] not in KNOWN_EXTENSIONS:
                 continue
             file_path = os.path.join(path, root, f)
-            register_song(file_path, sample_rate=sample_rate, distance=distance, point_efficiency=point_efficiency)
+            register_song(file_path,
+                          sample_rate=sample_rate,
+                          distance=distance,
+                          point_efficiency=point_efficiency,
+                          target_start=target_start, target_t=target_t, target_f=target_f,
+                          fft_window_size_s=fft_window_size_s)
 
 def score_match(offsets):
     tks = list(map(lambda x: x[0] - x[1], offsets))
@@ -41,13 +56,21 @@ def best_match(matches):
             # can't be best score, avoid expensive histogram
             continue
         score = score_match(offsets)
+        print(f"{song_id} - {score}")
         if score > best_score:
             best_score = score
             matched_song = song_id
     return matched_song
 
-def recognise_song(filename, sample_rate=11025, distance=30, point_efficiency=0.8):
-    hashes = fingerprint_file(filename, sample_rate=sample_rate, distance=distance, point_efficiency=point_efficiency)
+def recognise_song(filename, sample_rate=11025, distance=30, point_efficiency=0.8,
+                   target_start=0.1, target_t=1, target_f=2000,
+                   fft_window_size_s=0.1):
+    hashes = fingerprint_file(filename,
+                              sample_rate=sample_rate,
+                              distance=distance,
+                              point_efficiency=point_efficiency,
+                              target_start=target_start, target_t=target_t, target_f=target_f,
+                              fft_window_size_s=fft_window_size_s)
     matches = get_matches(hashes)
     matched_song = best_match(matches)
     info = get_info_for_song_id(matched_song)
