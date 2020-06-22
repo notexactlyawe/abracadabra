@@ -1,21 +1,25 @@
 import uuid
 import numpy as np
+from settings import (
+    SAMPLE_RATE, FFT_WINDOW_SIZE, POINT_EFFICIENCY, PEAK_BOX_SIZE,
+    TARGET_START, TARGET_T, TARGET_F
+)
 from pydub import AudioSegment
 from scipy.signal import spectrogram
 from scipy.ndimage import maximum_filter
 
-def my_spectrogram(audio, sample_rate, fft_window_size_s=0.1):
+def my_spectrogram(audio):
     # default 100ms segments (allows for 600BPM music)
-    nperseg = int(sample_rate * fft_window_size_s)
-    return spectrogram(audio, sample_rate, nperseg=nperseg)
+    nperseg = int(SAMPLE_RATE * FFT_WINDOW_SIZE)
+    return spectrogram(audio, SAMPLE_RATE, nperseg=nperseg)
 
-def file_to_spectrogram(filename, rate=11025, fft_window_size_s=0.1):
-    a = AudioSegment.from_file(filename).set_channels(1).set_frame_rate(rate)
+def file_to_spectrogram(filename):
+    a = AudioSegment.from_file(filename).set_channels(1).set_frame_rate(SAMPLE_RATE)
     audio = np.frombuffer(a.raw_data, np.int16)
-    return my_spectrogram(audio, rate, fft_window_size_s=fft_window_size_s)
+    return my_spectrogram(audio)
 
-def find_peaks(Sxx, distance, point_efficiency=1):
-    data_max = maximum_filter(Sxx, size=distance, mode='constant', cval=0.0)
+def find_peaks(Sxx):
+    data_max = maximum_filter(Sxx, size=PEAK_BOX_SIZE, mode='constant', cval=0.0)
     peak_goodmask = (Sxx == data_max)  # good pixels are True
     y_peaks, x_peaks = peak_goodmask.nonzero()
     peak_values = Sxx[y_peaks, x_peaks]
@@ -24,10 +28,10 @@ def find_peaks(Sxx, distance, point_efficiency=1):
     j = [(y_peaks[idx], x_peaks[idx]) for idx in i]
     peaks = []
     total = Sxx.shape[0] * Sxx.shape[1]
-    # in a square with a perfectly spaced grid, we could fit area / distance^2 points
+    # in a square with a perfectly spaced grid, we could fit area / PEAK_BOX_SIZE^2 points
     # use point efficiency to reduce this, since it won't be perfectly spaced
     # accuracy vs speed tradeoff
-    peak_target = int((total / (distance**2)) * point_efficiency)
+    peak_target = int((total / (PEAK_BOX_SIZE**2)) * POINT_EFFICIENCY)
     return j[:peak_target]
 
 def idxs_to_tf_pairs(idxs, t, f):
@@ -48,12 +52,12 @@ def target_zone(anchor, points, width, height, t):
             continue
         yield point
 
-def hash_points(points, filename, target_start=0.1, target_t=1, target_f=2000):
+def hash_points(points, filename):
     hashes = []
     song_id = uuid.uuid5(uuid.NAMESPACE_OID, filename).int
     for anchor in points:
         for target in target_zone(
-            anchor, points, target_t, target_f, target_start
+            anchor, points, TARGET_T, TARGET_F, TARGET_START
         ):
             hashes.append((
                 # hash
@@ -65,19 +69,14 @@ def hash_points(points, filename, target_start=0.1, target_t=1, target_f=2000):
             ))
     return hashes
 
-def fingerprint_file(filename,
-                     sample_rate=11025, distance=40, point_efficiency=1,
-                     target_start=0.1, target_t=1, target_f=2000,
-                     fft_window_size_s=0.1
-                    ):
-    f, t, Sxx = file_to_spectrogram(filename, rate=sample_rate, fft_window_size_s=fft_window_size_s)
-    peaks = find_peaks(Sxx, distance, point_efficiency=point_efficiency)
+def fingerprint_file(filename):
+    f, t, Sxx = file_to_spectrogram(filename)
+    peaks = find_peaks(Sxx)
     peaks = idxs_to_tf_pairs(peaks, t, f)
-    return hash_points(peaks, filename,
-                       target_start=target_start, target_t=target_t, target_f=target_f)
+    return hash_points(peaks, filename)
 
-def fingerprint_audio(frames, sample_rate=11025, distance=40, point_efficiency=1):
-    f, t, Sxx = my_spectrogram(frames, sample_rate)
-    peaks = find_peaks(Sxx, distance, point_efficiency=point_efficiency)
+def fingerprint_audio(frames):
+    f, t, Sxx = my_spectrogram(frames)
+    peaks = find_peaks(Sxx)
     peaks = idxs_to_tf_pairs(peaks, t, f)
     return hash_points(peaks, "recorded")

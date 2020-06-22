@@ -1,9 +1,7 @@
 import uuid
 import sqlite3
 from collections import defaultdict
-
-# stored in the root of the project by default
-DB_NAME = "hash.db"
+from settings import DB_PATH
 
 def setup_db():
     """ To be run once through an interactive shell """
@@ -18,7 +16,7 @@ def song_in_db(filename):
     return c.fetchone() is not None
 
 def get_cursor():
-    conn = sqlite3.connect(DB_NAME)
+    conn = sqlite3.connect(DB_PATH)
     return conn, conn.cursor()
 
 def store_song(hashes, song_info):
