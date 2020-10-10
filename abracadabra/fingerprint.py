@@ -11,7 +11,7 @@ from scipy.ndimage import maximum_filter
 
 def my_spectrogram(audio):
     """Helper function that performs a spectrogram with the values in settings."""
-    nperseg = SAMPLE_RATE * FFT_WINDOW_SIZE
+    nperseg = int(SAMPLE_RATE * FFT_WINDOW_SIZE)
     return spectrogram(audio, SAMPLE_RATE, nperseg=nperseg)
 
 

@@ -40,7 +40,7 @@ FFT_WINDOW_SIZE = 0.1
 frequency resolution but lower time resolution in the spectrogram.
 """
 
-DB_PATH = "../hash.db"
+DB_PATH = "hash.db"
 """ Path to the database file to use. """
 
 NUM_WORKERS = 8

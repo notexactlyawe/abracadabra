@@ -4,3 +4,4 @@ venv/
 .ipynb_checkpoints/
 *.db
 _build/
+tags
