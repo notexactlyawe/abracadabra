@@ -1,6 +1,7 @@
 import os
 import click
-from abracadabra import storage, recognise
+import abracadabra.storage as storage
+import abracadabra.recognise as recog
 
 
 @click.group()
@@ -12,21 +13,20 @@ def cli():
 @click.argument("path")
 def register(path):
     if os.path.isdir(path):
-        recognise.register_directory(path)
+        recog.register_directory(path)
     else:
-        recognise.register_song(path)
+        recog.register_song(path)
 
 
 @click.command(help="Recognise a song at a filename or using the microphone")
 @click.argument("path", required=False)
 @click.option("--listen", is_flag=True, help="Use the microphone to listen for a song")
-def recognise_command(path, listen):
-    print(f"Args: path - {path}, listen - {listen}")
+def recognise(path, listen):
     if listen:
-        result = recognise.listen_to_song()
+        result = recog.listen_to_song()
         click.echo(result)
     else:
-        result = recognise.recognise_song(path)
+        result = recog.recognise_song(path)
         click.echo(result)
 
 
@@ -35,8 +35,9 @@ def initialise():
     storage.setup_db()
     click.echo("Initialised DB")
 
+
 cli.add_command(register)
-cli.add_command(recognise_command)
+cli.add_command(recognise)
 cli.add_command(initialise)
 
 if __name__ == "__main__":
