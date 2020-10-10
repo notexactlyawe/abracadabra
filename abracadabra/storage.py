@@ -10,8 +10,8 @@ def setup_db():
     To be run once through an interactive shell.
     """
     conn, c = get_cursor()
-    c.execute("CREATE TABLE hash (hash int, offset real, song_id text)")
-    c.execute("CREATE TABLE song_info (artist text, album text, title text, song_id text)")
+    c.execute("CREATE TABLE IF NOT EXISTS hash (hash int, offset real, song_id text)")
+    c.execute("CREATE TABLE IF NOT EXISTS song_info (artist text, album text, title text, song_id text)")
 
 
 def song_in_db(filename):

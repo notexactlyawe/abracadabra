@@ -16,7 +16,7 @@ Next, install the pre-requisites for the Python packages. On Ubuntu, you can do 
 
 .. code-block:: bash
 
-   sudo apt-get install portaudio19-dev python3-dev ffmpeg
+   sudo apt-get install gcc portaudio19-dev python3-dev ffmpeg
 
 Now install the dependencies for the project with:
 
