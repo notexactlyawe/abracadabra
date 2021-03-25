@@ -9,8 +9,10 @@
    :maxdepth: 3
    :caption: Contents:
 
+   index
    usage/getstarted
-   source/modules
+   Modules <source/modules>
+   Contributing to Documentation <contributing/documentation>
 
 Indices and tables
 ==================

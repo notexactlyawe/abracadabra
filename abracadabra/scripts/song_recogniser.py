@@ -20,7 +20,8 @@ def register(path):
 
 @click.command(help="Recognise a song at a filename or using the microphone")
 @click.argument("path", required=False)
-@click.option("--listen", is_flag=True, help="Use the microphone to listen for a song")
+@click.option("--listen", is_flag=True,
+              help="Use the microphone to listen for a song")
 def recognise(path, listen):
     if listen:
         result = recog.listen_to_song()
@@ -30,7 +31,8 @@ def recognise(path, listen):
         click.echo(result)
 
 
-@click.command(help="Initialise the DB, needs to be done before other commands")
+@click.command(
+    help="Initialise the DB, needs to be done before other commands")
 def initialise():
     storage.setup_db()
     click.echo("Initialised DB")

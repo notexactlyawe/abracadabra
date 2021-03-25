@@ -5,3 +5,4 @@ venv/
 *.db
 _build/
 tags
+abracadabra.egg-info/
