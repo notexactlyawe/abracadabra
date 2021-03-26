@@ -65,8 +65,13 @@ def score_match(offsets):
     :returns: The highest peak in a histogram of time deltas
     :rtype: int
     """
+    # Use bins spaced 1 second apart
+    binwidth = 1
     tks = list(map(lambda x: x[0] - x[1], offsets))
-    hist, _ = np.histogram(tks)
+    hist, _ = np.histogram(tks,
+                           bins=range(int(min(tks)),
+                                      int(max(tks)) + binwidth + 1,
+                                      binwidth))
     return np.max(hist)
 
 
