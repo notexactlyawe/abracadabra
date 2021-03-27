@@ -131,8 +131,8 @@ class RecordThread(threading.Thread):
 def gen_many_tests(base_filename, spacing=5, piece_len=10):
     """Generate sample files continuously by recording the microphone input.
 
-    Takes a base_filename and saves overlapping audio segments of :param:`piece_len` to the path
-    :data:`SAVE_DIRECTORY`/:param:`base_filename` ``<num>.wav`` where ``<num>`` is a monotonically
+    Takes a base_filename and saves overlapping audio segments of length ``piece_len`` to the path
+    :data:`SAVE_DIRECTORY`/``base_filename<num>.wav`` where ``<num>`` is a monotonically
     increasing number.
 
     This function needs to be run manually since it will run until the user presses ``<Enter>``.
