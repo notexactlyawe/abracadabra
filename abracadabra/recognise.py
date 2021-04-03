@@ -19,7 +19,8 @@ def get_song_info(filename):
     :rtype: tuple(str/None, str/None, str/None)
     """
     tag = TinyTag.get(filename)
-    return (tag.albumartist, tag.album, tag.title)
+    artist = tag.artist if tag.albumartist is None else tag.albumartist
+    return (artist, tag.album, tag.title)
 
 
 def register_song(filename):
