@@ -1,7 +1,7 @@
 """ This file contains the global settings for the project. """
 
 
-SAMPLE_RATE = 22050
+SAMPLE_RATE = 44100
 """ When a file is fingerprinted it is resampled to SAMPLE_RATE Hz.
 Higher sample rates mean more accuracy in recognition, but also slower recognition
 and larger database file sizes. Setting it higher than the sample rate for your
@@ -35,7 +35,7 @@ TARGET_F = 4000
 Can range from 0 - (0.5 * SAMPLE_RATE).
 """
 
-FFT_WINDOW_SIZE = 0.1
+FFT_WINDOW_SIZE = 0.2
 """ The number of seconds of audio to use in each spectrogram segment. Larger windows mean higher
 frequency resolution but lower time resolution in the spectrogram.
 """
@@ -43,5 +43,5 @@ frequency resolution but lower time resolution in the spectrogram.
 DB_PATH = "hash.db"
 """ Path to the database file to use. """
 
-NUM_WORKERS = 8
+NUM_WORKERS = 24
 """ Number of workers to use when registering songs. """

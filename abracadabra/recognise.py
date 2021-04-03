@@ -1,11 +1,12 @@
 import os
+import logging
+from multiprocessing import Pool, Lock, current_process
 import numpy as np
-from multiprocessing import Pool
 from tinytag import TinyTag
+from . import settings
 from .record import record_audio
 from .fingerprint import fingerprint_file, fingerprint_audio
-from .storage import store_song, get_matches, get_info_for_song_id, song_in_db
-from .settings import NUM_WORKERS
+from .storage import store_song, get_matches, get_info_for_song_id, song_in_db, checkpoint_db
 
 KNOWN_EXTENSIONS = ["mp3", "wav", "flac", "m4a"]
 
@@ -32,17 +33,35 @@ def register_song(filename):
         return
     hashes = fingerprint_file(filename)
     song_info = get_song_info(filename)
-    store_song(hashes, song_info)
+    try:
+        logging.info(f"{current_process().name} waiting to write {filename}")
+        with lock:
+            logging.info(f"{current_process().name} writing {filename}")
+            store_song(hashes, song_info)
+            logging.info(f"{current_process().name} wrote {filename}")
+    except NameError:
+        logging.info(f"Single-threaded write of {filename}")
+        # running single-threaded, no lock needed
+        store_song(hashes, song_info)
 
 
 def register_directory(path):
-    """ Recursively register songs in a directory.
+    """Recursively register songs in a directory.
 
     Uses :data:`~abracadabra.settings.NUM_WORKERS` workers in a pool to register songs in a
     directory.
 
     :param path: Path of directory to register
     """
+    def pool_init(l):
+        """Init function that makes a lock available to each of the workers in
+        the pool. Allows synchronisation of db writes since SQLite only supports
+        one writer at a time.
+        """
+        global lock
+        lock = l
+        logging.info(f"Pool init in {current_process().name}")
+
     to_register = []
     for root, _, files in os.walk(path):
         for f in files:
@@ -50,8 +69,11 @@ def register_directory(path):
                 continue
             file_path = os.path.join(path, root, f)
             to_register.append(file_path)
-    with Pool(NUM_WORKERS) as p:
+    l = Lock()
+    with Pool(settings.NUM_WORKERS, initializer=pool_init, initargs=(l,)) as p:
         p.map(register_song, to_register)
+    # speed up future reads
+    checkpoint_db()
 
 
 def score_match(offsets):

@@ -1,7 +1,21 @@
 import uuid
 import sqlite3
 from collections import defaultdict
-from .settings import DB_PATH
+from contextlib import contextmanager
+from . import settings
+
+
+@contextmanager
+def get_cursor():
+    """Get a connection/cursor to the database.
+
+    :returns: Tuple of connection and cursor.
+    """
+    try:
+        conn = sqlite3.connect(settings.DB_PATH, timeout=30)
+        yield conn, conn.cursor()
+    finally:
+        conn.close()
 
 
 def setup_db():
@@ -9,9 +23,21 @@ def setup_db():
 
     To be run once through an interactive shell.
     """
-    conn, c = get_cursor()
-    c.execute("CREATE TABLE IF NOT EXISTS hash (hash int, offset real, song_id text)")
-    c.execute("CREATE TABLE IF NOT EXISTS song_info (artist text, album text, title text, song_id text)")
+    with get_cursor() as (conn, c):
+        c.execute("CREATE TABLE IF NOT EXISTS hash (hash int, offset real, song_id text)")
+        c.execute("CREATE TABLE IF NOT EXISTS song_info (artist text, album text, title text, song_id text)")
+        # dramatically speed up recognition
+        c.execute("CREATE INDEX IF NOT EXISTS idx_hash ON hash (hash)")
+        # faster write mode that enables greater concurrency
+        # https://sqlite.org/wal.html
+        c.execute("PRAGMA journal_mode=WAL")
+        # reduce load at a checkpoint and reduce chance of a timeout
+        c.execute("PRAGMA wal_autocheckpoint=300")
+
+
+def checkpoint_db():
+    with get_cursor() as (conn, c):
+        c.execute("PRAGMA wal_checkpoint(FULL)")
 
 
 def song_in_db(filename):
@@ -21,19 +47,10 @@ def song_in_db(filename):
     :returns: Whether the path exists in the database yet.
     :rtype: bool
     """
-    conn, c = get_cursor()
-    song_id = str(uuid.uuid5(uuid.NAMESPACE_OID, filename).int)
-    c.execute("SELECT * FROM song_info WHERE song_id=?", (song_id,))
-    return c.fetchone() is not None
-
-
-def get_cursor():
-    """Get a connection/cursor to the database.
-
-    :returns: Tuple of connection and cursor.
-    """
-    conn = sqlite3.connect(DB_PATH)
-    return conn, conn.cursor()
+    with get_cursor() as (conn, c):
+        song_id = str(uuid.uuid5(uuid.NAMESPACE_OID, filename).int)
+        c.execute("SELECT * FROM song_info WHERE song_id=?", (song_id,))
+        return c.fetchone() is not None
 
 
 def store_song(hashes, song_info):
@@ -48,11 +65,11 @@ def store_song(hashes, song_info):
         # Probably should re-run the peaks finding with higher efficiency
         # or maybe widen the target zone
         return
-    conn, c = get_cursor()
-    c.executemany("INSERT INTO hash VALUES (?, ?, ?)", hashes)
-    insert_info = [i if i is not None else "Unknown" for i in song_info]
-    c.execute("INSERT INTO song_info VALUES (?, ?, ?, ?)", (*insert_info, hashes[0][2]))
-    conn.commit()
+    with get_cursor() as (conn, c):
+        c.executemany("INSERT INTO hash VALUES (?, ?, ?)", hashes)
+        insert_info = [i if i is not None else "Unknown" for i in song_info]
+        c.execute("INSERT INTO song_info VALUES (?, ?, ?, ?)", (*insert_info, hashes[0][2]))
+        conn.commit()
 
 
 def get_matches(hashes, threshold=5):
@@ -65,13 +82,13 @@ def get_matches(hashes, threshold=5):
         the form (result offset, original hash offset).
     :rtype: dict(str: list(tuple(float, float)))
     """
-    conn, c = get_cursor()
     h_dict = {}
     for h, t, _ in hashes:
         h_dict[h] = t
     in_values = f"({','.join([str(h[0]) for h in hashes])})"
-    c.execute(f"SELECT hash, offset, song_id FROM hash WHERE hash IN {in_values}")
-    results = c.fetchall()
+    with get_cursor() as (conn, c):
+        c.execute(f"SELECT hash, offset, song_id FROM hash WHERE hash IN {in_values}")
+        results = c.fetchall()
     result_dict = defaultdict(list)
     for r in results:
         result_dict[r[2]].append((r[1], h_dict[r[0]]))
@@ -80,6 +97,6 @@ def get_matches(hashes, threshold=5):
 
 def get_info_for_song_id(song_id):
     """Lookup song information for a given ID."""
-    conn, c = get_cursor()
-    c.execute("SELECT artist, album, title FROM song_info WHERE song_id = ?", (song_id,))
-    return c.fetchone()
+    with get_cursor() as (conn, c):
+        c.execute("SELECT artist, album, title FROM song_info WHERE song_id = ?", (song_id,))
+        return c.fetchone()

@@ -1,9 +1,11 @@
 abracadabra: Sound recognition in Python
 ========================================
 
+*abracadabra à la Shazam*
+
 abracadabra is sound recogniser written in Python. It is an implementation of the Shazam paper: `An Industrial Strength Audio Search Algorithm <https://www.ee.columbia.edu/~dpwe/papers/Wang03-shazam.pdf>`_.
 
-Read the `docs here <https://abracadabra.readthedocs.io/en/latest/>`_
+Read the `docs here <https://abracadabra.readthedocs.io/en/latest/>`_.
 
 
 What can you use it for?

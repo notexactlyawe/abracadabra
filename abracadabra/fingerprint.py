@@ -1,9 +1,6 @@
 import uuid
 import numpy as np
-from .settings import (
-    SAMPLE_RATE, FFT_WINDOW_SIZE, POINT_EFFICIENCY, PEAK_BOX_SIZE,
-    TARGET_START, TARGET_T, TARGET_F
-)
+from . import settings
 from pydub import AudioSegment
 from scipy.signal import spectrogram
 from scipy.ndimage import maximum_filter
@@ -11,8 +8,8 @@ from scipy.ndimage import maximum_filter
 
 def my_spectrogram(audio):
     """Helper function that performs a spectrogram with the values in settings."""
-    nperseg = int(SAMPLE_RATE * FFT_WINDOW_SIZE)
-    return spectrogram(audio, SAMPLE_RATE, nperseg=nperseg)
+    nperseg = int(settings.SAMPLE_RATE * settings.FFT_WINDOW_SIZE)
+    return spectrogram(audio, settings.SAMPLE_RATE, nperseg=nperseg)
 
 
 def file_to_spectrogram(filename):
@@ -26,7 +23,7 @@ def file_to_spectrogram(filename):
               * t - list of times
               * Sxx - Power value for each time/frequency pair
     """
-    a = AudioSegment.from_file(filename).set_channels(1).set_frame_rate(SAMPLE_RATE)
+    a = AudioSegment.from_file(filename).set_channels(1).set_frame_rate(settings.SAMPLE_RATE)
     audio = np.frombuffer(a.raw_data, np.int16)
     return my_spectrogram(audio)
 
@@ -45,7 +42,7 @@ def find_peaks(Sxx):
     :param Sxx: The spectrogram.
     :returns: A list of peaks in the spectrogram.
     """
-    data_max = maximum_filter(Sxx, size=PEAK_BOX_SIZE, mode='constant', cval=0.0)
+    data_max = maximum_filter(Sxx, size=settings.PEAK_BOX_SIZE, mode='constant', cval=0.0)
     peak_goodmask = (Sxx == data_max)  # good pixels are True
     y_peaks, x_peaks = peak_goodmask.nonzero()
     peak_values = Sxx[y_peaks, x_peaks]
@@ -56,7 +53,7 @@ def find_peaks(Sxx):
     # in a square with a perfectly spaced grid, we could fit area / PEAK_BOX_SIZE^2 points
     # use point efficiency to reduce this, since it won't be perfectly spaced
     # accuracy vs speed tradeoff
-    peak_target = int((total / (PEAK_BOX_SIZE**2)) * POINT_EFFICIENCY)
+    peak_target = int((total / (settings.PEAK_BOX_SIZE**2)) * settings.POINT_EFFICIENCY)
     return j[:peak_target]
 
 
@@ -109,7 +106,7 @@ def hash_points(points, filename):
     song_id = uuid.uuid5(uuid.NAMESPACE_OID, filename).int
     for anchor in points:
         for target in target_zone(
-            anchor, points, TARGET_T, TARGET_F, TARGET_START
+            anchor, points, settings.TARGET_T, settings.TARGET_F, settings.TARGET_START
         ):
             hashes.append((
                 # hash
