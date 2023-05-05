@@ -1,7 +1,11 @@
 import os
 import click
+import logging
 import abracadabra.storage as storage
 import abracadabra.recognise as recog
+
+
+logging.basicConfig(filename='abracadabra.log', level=logging.DEBUG)
 
 
 @click.group()
